@@ -1,0 +1,38 @@
+# docker-compose.yml for worldlynk-order-service
+
+services:
+  order-service:
+    build: .
+    ports:
+      - "4002:4002"
+    environment:
+      - PORT=4002
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_EXCHANGE=payment_exchange
+      - FIREBASE_CONFIG_PATH=./src/config/serviceAccountKey.json
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-shared-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4002"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - my-shared-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  my-shared-network:
+    external: true
